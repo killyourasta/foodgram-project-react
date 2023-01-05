@@ -4,9 +4,9 @@
 
 Foodgram - продуктовый помощник с базой кулинарных рецептов. Позволяет публиковать рецепты, сохранять избранные, а также формировать список покупок для выбранных рецептов. Можно подписываться на любимых авторов.
 
-Проект доступен по [адресу](https://foodgramproject.ru)
+Проект доступен по [адресу](https://foodgramproject.ddns.net)
 
-Документация к API доступна [здесь](https://foodgramproject.ru/api/docs/)
+Документация к API доступна [здесь](https://foodgramproject.ddns.net/api/docs/)
 
 В документации описаны возможные запросы к API и структура ожидаемых ответов. Для каждого запроса указаны уровни прав доступа.
 
@@ -100,7 +100,7 @@ sudo docker compose stop         # без удаления
 
 - Клонировать репозиторий:
 ```
-https://github.com/mikhailsoldatkin/foodgram-project-react.git
+https://github.com/killyourasta/foodgram-project-react.git
 ```
 
 - В директории infra файл example.env переименовать в .env и заполнить своими данными:
