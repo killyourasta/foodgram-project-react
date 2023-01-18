@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django_filters import rest_framework as filters, FilterSet
+from django_filters import FilterSet, rest_framework as filters
 
 from recipes.models import Ingredient, Recipe, Tag
 
@@ -15,8 +15,6 @@ class IngredientFilter(filters.FilterSet):
 
 
 class RecipeFilter(FilterSet):
-    """ Фильтры для сортировки рецептов по:
-    тегам, нахождению в избранном и корзине. """
     tags = filters.ModelMultipleChoiceFilter(
         field_name='tags__slug',
         to_field_name='slug',

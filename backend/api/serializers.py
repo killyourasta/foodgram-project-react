@@ -20,11 +20,14 @@ from users.models import Follow, User
 User = get_user_model()
 
 
-class CustomUserCreateSerializer(UserCreateSerializer):
+class UserCreateSerializer(UserCreateSerializer):
     class Meta:
         model = User
-        fields = tuple(User.REQUIRED_FIELDS) + (
-            User.USERNAME_FIELD,
+        fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
             'password',
         )
 
@@ -46,7 +49,7 @@ class UserSerializer(ModelSerializer):
         user = self.context['request'].user
         return (
             user.is_authenticated
-            and obj.subscribing.filter(user=user).exists()
+            and obj.following.filter(user=user).exists()
         )
 
     def create(self, validated_data):
@@ -57,25 +60,18 @@ class UserSerializer(ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    """ Сериализатор для тегов """
     class Meta:
         model = Tag
-        fields = '__all__'
-        read_only_fields = '__all__',
+        fields = ( 'id', 'name', 'color', 'slug',)
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-    """ Сериализатор для ингредиентов """
     class Meta:
         model = Ingredient
-        fields = '__all__'
-        read_only_fields = '__all__',
+        fields = ('id', 'name', 'measurement_unit')
 
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор для вывода количества ингредиентов
-    """
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
@@ -88,9 +84,6 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор для краткого отображения сведений о рецепте
-    """
     image = Base64ImageField()
 
     class Meta:
@@ -99,7 +92,6 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
-    """ Сериализатор для списка избранного """
     class Meta:
         model = Favorite
         fields = ('user', 'recipe')
@@ -123,7 +115,6 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    """ Сериализатор для списка покупок """
     class Meta:
         model = ShoppingCart
         fields = ('user', 'recipe')
@@ -172,7 +163,7 @@ class RecipeReadSerializer(ModelSerializer):
             'id',
             'name',
             'measurement_unit',
-            amount=F('ingredientinrecipe__amount')
+            amount=F('amounts')
         )
         return ingredients
 
@@ -180,7 +171,7 @@ class RecipeReadSerializer(ModelSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return user.favorites.filter(recipe=obj).exists()
+        return user.favorites_user.filter(recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get('request').user

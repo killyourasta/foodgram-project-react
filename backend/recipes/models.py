@@ -1,3 +1,4 @@
+from colorfield.fields import ColorField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import UniqueConstraint
@@ -19,26 +20,40 @@ class Ingredient(models.Model):
         ordering = ['name']
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
-        constraints = [
-            models.UniqueConstraint(fields=['name', 'measurement_unit'],
-                                    name='unique ingredient')
-        ]
+        constraints = (
+            models.UniqueConstraint(
+                fields=('name', 'measurement_unit'),
+                name='unique_ingredient'
+            ),
+        )
 
     def __str__(self):
         return f'{self.name}, {self.measurement_unit}'
 
 
 class Tag(models.Model):
+    COLOR_PALETTE = ( 
+        ('#FFFFFF', 'Белый'), 
+        ('#000000', 'Чёрный'), 
+        ('#0000FF', 'Синий'), 
+        ('#008000', 'Зеленый'), 
+        ('#FF0000', 'Красный'), 
+        ('#FFFF00', 'Жёлтый'), 
+        ('#FFC0CB', 'Розовый'), 
+        ('#FFA500', 'Оранжевый'), 
+    ) 
+ 
+    color = ColorField( 
+        unique=True, 
+        samples=COLOR_PALETTE, 
+        max_length=7, 
+        verbose_name='Цвет тэга', 
+    )
     name = models.CharField(
         'Имя',
         max_length=60,
         unique=True)
-    color = models.CharField(
-        'Цвет',
-        max_length=7,
-        unique=True)
     slug = models.SlugField(
-        'Ссылка',
         max_length=200,
         unique=True)
 
@@ -71,8 +86,8 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         Ingredient,
-        verbose_name='Ингредиенты',
         through='IngredientAmount',
+        verbose_name='Ингредиенты',
         related_name='recipes',
     )
     tags = models.ManyToManyField(
@@ -135,13 +150,13 @@ class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='carts',
+        related_name='shopping_cart',
         verbose_name='Пользователь',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='carts',
+        related_name='shopping_cart',
         verbose_name='Рецепт',
     )
 
@@ -150,7 +165,7 @@ class ShoppingCart(models.Model):
         verbose_name_plural = 'Корзины покупок'
         constraints = [
             models.UniqueConstraint(fields=['user', 'recipe'],
-                                    name='unique shopping cart')
+                                    name='unique_shopping_cart')
         ]
 
     def __str__(self):
