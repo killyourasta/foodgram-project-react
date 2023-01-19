@@ -20,7 +20,7 @@ from users.models import Follow, User
 User = get_user_model()
 
 
-class UserCreateSerializer(UserCreateSerializer):
+class CustomUserCreateSerializer(UserCreateSerializer):
     class Meta:
         model = User
         fields = (
@@ -32,7 +32,7 @@ class UserCreateSerializer(UserCreateSerializer):
         )
 
 
-class UserSerializer(ModelSerializer):
+class CustomUserSerializer(UserSerializer):
     is_subscribed = SerializerMethodField('is_subscribed_user')
 
     class Meta:
@@ -57,6 +57,50 @@ class UserSerializer(ModelSerializer):
             make_password(validated_data.pop('password'))
         )
         return super().create(validated_data)
+
+
+class FollowSerializer(CustomUserSerializer):
+    recipes_count = SerializerMethodField()
+    recipes = SerializerMethodField()
+
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + (
+            'recipes_count',
+            'recipes'
+        )
+        read_only_fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+        )
+
+    def validate(self, data):
+        author = self.instance
+        user = self.context.get('request').user
+        if Follow.objects.filter(author=author, user=user).exists():
+            raise ValidationError(
+                detail='Вы уже подписаны на этого пользователя!',
+                code=status.HTTP_400_BAD_REQUEST
+            )
+        if user == author:
+            raise ValidationError(
+                detail='Вы не можете подписаться на самого себя!',
+                code=status.HTTP_400_BAD_REQUEST
+            )
+        return data
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        limit = request.GET.get('recipes_limit')
+        recipes = obj.recipes.all()
+        if limit:
+            recipes = recipes[:int(limit)]
+        serializer = ShortRecipeSerializer(recipes, many=True, read_only=True)
+        return serializer.data
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -136,7 +180,7 @@ class IngredientInRecipeWriteSerializer(ModelSerializer):
 
 class RecipeReadSerializer(ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
-    author = UserSerializer(read_only=True)
+    author = CustomUserSerializer(read_only=True)
     ingredients = SerializerMethodField()
     image = Base64ImageField()
     is_favorited = SerializerMethodField(read_only=True)
@@ -273,41 +317,3 @@ class RecipeWriteSerializer(ModelSerializer):
         context = {'request': request}
         return RecipeReadSerializer(instance,
                                     context=context).data
-
-
-class FollowSerializer(UserSerializer):
-    recipes_count = SerializerMethodField()
-    recipes = SerializerMethodField()
-
-    class Meta(UserSerializer.Meta):
-        fields = UserSerializer.Meta.fields + (
-            'recipes_count', 'recipes'
-        )
-        read_only_fields = ('email', 'username')
-
-    def validate(self, data):
-        author = self.instance
-        user = self.context.get('request').user
-        if Follow.objects.filter(author=author, user=user).exists():
-            raise ValidationError(
-                detail='Вы уже подписаны на этого пользователя!',
-                code=status.HTTP_400_BAD_REQUEST
-            )
-        if user == author:
-            raise ValidationError(
-                detail='Вы не можете подписаться на самого себя!',
-                code=status.HTTP_400_BAD_REQUEST
-            )
-        return data
-
-    def get_recipes_count(self, obj):
-        return obj.recipes.count()
-
-    def get_recipes(self, obj):
-        request = self.context.get('request')
-        limit = request.GET.get('recipes_limit')
-        recipes = obj.recipes.all()
-        if limit:
-            recipes = recipes[:int(limit)]
-        serializer = ShortRecipeSerializer(recipes, many=True, read_only=True)
-        return serializer.data

@@ -17,6 +17,8 @@ SECRET_KEY = os.getenv(key='SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# POSTGRESQL = True
+
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS')
 
 
@@ -32,7 +34,6 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'rest_framework.authtoken',
-    #'djoser',
     'django_filters',
 
     'users',
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'api',
     'djoser',
     'colorfield',
+    'import_export',
 ]
 
 MIDDLEWARE = [
@@ -76,25 +78,24 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-# DATABASES = {
-#    'default': {
-#         'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
-#         'NAME': os.getenv('DB_NAME', 'postgres'),
-#         'USER': os.getenv('POSTGRES_USER', 'postgres'),
-#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgresql'),
-#         'HOST': os.getenv('DB_HOST', 'PostgreSQL'),
-#         'PORT': os.getenv('DB_PORT', '5432'),
-#         'TEST': {
-#             'NAME': 'test_database',
-#         },
-#     }
-# }
+# if POSTGRESQL:
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
+        'NAME': os.getenv('DB_NAME', 'postgres'),
+        'USER': os.getenv('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgresql'),
+        'HOST': os.getenv('DB_HOST', 'PostgreSQL'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+    },
 }
+# else:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
@@ -133,14 +134,14 @@ DJOSER = {
     'LOGIN_FIELD': 'email',
     
     'SERIALIZERS': {
-        'user_create': 'api.serializers.UserCreateSerializer',
-        'user': 'api.serializers.UserSerializer',
-        'current_user': 'api.serializers.UserSerializer',
+        'user_create': 'api.serializers.CustomUserCreateSerializer',
+        'user': 'api.serializers.CustomUserSerializer',
+        'current_user': 'api.serializers.CustomUserSerializer',
     },
 
     'PERMISSIONS': {
-        'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
-        'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+        'user': ['rest_framework.permissions.AllowAny'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
     },
     'HIDE_USERS': False,
 }

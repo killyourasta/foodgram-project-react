@@ -1,8 +1,4 @@
-from datetime import datetime
-
 from django.contrib.auth import get_user_model
-from django.db.models import Sum
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -10,21 +6,18 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from recipes.models import (
-    Favorite, Ingredient, IngredientAmount, Recipe, ShoppingCart, Tag,
-)
+from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .utils import get_shopping_list
 from api.serializers import (
-    FollowSerializer, IngredientSerializer, RecipeReadSerializer,
-    RecipeWriteSerializer, ShortRecipeSerializer, TagSerializer,
-    UserSerializer,
+    CustomUserSerializer, FollowSerializer, IngredientSerializer,
+    RecipeReadSerializer, RecipeWriteSerializer, ShortRecipeSerializer,
+    TagSerializer,
 )
 from users.models import Follow, User
 
@@ -33,23 +26,24 @@ User = get_user_model()
 
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = CustomUserSerializer
     pagination_class = CustomPagination
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=['GET', 'POST', 'DELETE'],
+        url_path='subscribe',
         permission_classes=[IsAuthenticated]
     )
-    def Follow(self, request, **kwargs):
+    def subscribe(self, request, **kwargs):
         user = request.user
         author_id = self.kwargs.get('id')
         author = get_object_or_404(User, id=author_id)
 
         if request.method == 'POST':
             serializer = FollowSerializer(author,
-                                             data=request.data,
-                                             context={"request": request})
+                                          data=request.data,
+                                          context={"request": request})
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -63,6 +57,7 @@ class CustomUserViewSet(UserViewSet):
 
     @action(
         detail=False,
+        url_path='subscriptions',
         permission_classes=[IsAuthenticated]
     )
     def subscriptions(self, request):

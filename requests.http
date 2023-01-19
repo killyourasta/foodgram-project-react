@@ -1,0 +1,65 @@
+POST http://127.0.0.1:8000/api/users/
+
+###
+
+GET http://127.0.0.1:8000/api/users/1/
+
+###
+
+GET http://127.0.0.1:8000/api/users/me/
+
+###
+
+GET http://localhost/api/tags/
+
+###
+
+GET http://localhost/api/tags/
+
+###
+
+POST http://127.0.0.1:8000/api/recipes/
+Content-Type: application/json
+{
+    "ingredients": [
+        {
+            "id": 4,
+            "amount": 1
+            }
+            ],
+    "tags": [
+        2
+        ],
+    "name": "салат летний",
+    "text": "возьмите огурцы и помидоры, накрошить кубиком,заправить подсолнечным масло",
+    "cooking_time": 5
+}
+
+###
+
+GET http://127.0.0.1:8000/api/recipes/
+
+###
+
+DELETE http://127.0.0.1:8000/api/recipes/1/
+
+###
+
+POST http://127.0.0.1:8000/api/auth/token/login/
+
+###
+
+GET http://127.0.0.1:8000/api/recipes/download_shopping_cart/
+
+###
+
+POST http://127.0.0.1:8000/api/recipes/1/download_shopping_cart/
+
+###
+
+GET  http://127.0.0.1:8000/api/users/subscriptions/
+
+###
+
+
+###

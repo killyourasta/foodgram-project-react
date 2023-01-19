@@ -8,7 +8,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from recipes.models import IngredientAmount
 
 
-def get_shopping_list(self, request):
+def get_shopping_list(request):
         user = request.user
         if not user.shopping_cart.exists():
             return Response(status=HTTP_400_BAD_REQUEST)
