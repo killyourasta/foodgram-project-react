@@ -53,6 +53,8 @@ class CustomUserViewSet(UserViewSet):
                                              author=author)
             subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = FollowSerializer()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         detail=False,
@@ -107,7 +109,7 @@ class RecipeViewSet(ModelViewSet):
         if request.method == 'POST':
             return self.add_to(Favorite, request.user, pk)
         else:
-            return self.delete_from(Favorite, request.user, pk)
+            return
 
     @action(
         detail=True,
@@ -118,7 +120,7 @@ class RecipeViewSet(ModelViewSet):
         if request.method == 'POST':
             return self.add_to(ShoppingCart, request.user, pk)
         else:
-            return self.delete_from(ShoppingCart, request.user, pk)
+            return
 
     def add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
