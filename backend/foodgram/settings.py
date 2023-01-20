@@ -12,12 +12,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv(key='SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', default='secret_key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# POSTGRESQL = True
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS')
 
@@ -78,7 +77,6 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-# if POSTGRESQL:
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
@@ -89,15 +87,7 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', '5432'),
     },
 }
-# else:
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#     }
-# }
-# Password validation
-# https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
+
 
 AUTH_USER_MODEL = 'users.User'
 
