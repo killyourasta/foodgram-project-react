@@ -14,9 +14,9 @@ from .pagination import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .utils import get_shopping_list
 from api.serializers import (
-    CustomUserSerializer, FollowSerializer, IngredientSerializer,
-    RecipeReadSerializer, RecipeWriteSerializer, ShortRecipeSerializer,
-    TagSerializer,
+    CustomUserSerializer, FavoriteSerializer, FollowSerializer,
+    IngredientSerializer, RecipeReadSerializer, RecipeWriteSerializer,
+    ShoppingCartSerializer, ShortRecipeSerializer, TagSerializer,
 )
 from users.models import Follow, User
 
@@ -108,6 +108,8 @@ class RecipeViewSet(ModelViewSet):
     def favorite(self, request, pk):
         if request.method == 'POST':
             return self.add_to(Favorite, request.user, pk)
+        serializer = FavoriteSerializer()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         detail=True,
@@ -117,6 +119,8 @@ class RecipeViewSet(ModelViewSet):
     def shopping_cart(self, request, pk):
         if request.method == 'POST':
             return self.add_to(ShoppingCart, request.user, pk)
+        serializer = ShoppingCartSerializer()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
