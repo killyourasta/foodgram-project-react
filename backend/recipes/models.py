@@ -39,7 +39,7 @@ class Tag(models.Model):
         ('#008000', 'Зеленый'),
         ('#FF0000', 'Красный'),
         ('#FFFF00', 'Жёлтый'),
-        ('#FFC0CB', 'Розовый'), 
+        ('#FFC0CB', 'Розовый'),
         ('#FFA500', 'Оранжевый'),
     )
 
@@ -165,7 +165,7 @@ class ShoppingCart(models.Model):
         verbose_name_plural = 'Корзины покупок'
         constraints = [
             UniqueConstraint(fields=['user', 'recipe'],
-            name='unique_carts')
+                             name='unique_carts')
         ]
 
     def __str__(self):

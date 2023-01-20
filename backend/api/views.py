@@ -2,13 +2,12 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-
-from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import CustomPagination
@@ -140,4 +139,4 @@ class RecipeViewSet(ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-            return get_shopping_list(request)
+        return get_shopping_list(request)
