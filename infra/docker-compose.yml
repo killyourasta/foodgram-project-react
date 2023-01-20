@@ -9,7 +9,7 @@ services:
       - ./.env
 
   backend:
-    # image: lisyonok/foodgram-backend:latest
+    #image: lisyonok/foodgram-backend:latest
     build: ../backend
     restart: always
     volumes:
