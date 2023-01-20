@@ -9,8 +9,8 @@ class User(AbstractUser):
         'Имя пользователя',
         max_length=150,
         unique=True,
-        validators = [username_validator],
-        error_messages = {
+        validators=[username_validator],
+        error_messages={
             'unique': ("A user with that username already exists."),
         },
     )
@@ -28,7 +28,6 @@ class User(AbstractUser):
     password = models.CharField(
         'Пароль',
         max_length=150)
-
 
     class Meta:
         ordering = ('id',)

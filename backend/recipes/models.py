@@ -32,22 +32,22 @@ class Ingredient(models.Model):
 
 
 class Tag(models.Model):
-    COLOR_PALETTE = ( 
-        ('#FFFFFF', 'Белый'), 
-        ('#000000', 'Чёрный'), 
-        ('#0000FF', 'Синий'), 
-        ('#008000', 'Зеленый'), 
-        ('#FF0000', 'Красный'), 
-        ('#FFFF00', 'Жёлтый'), 
+    COLOR_PALETTE = (
+        ('#FFFFFF', 'Белый'),
+        ('#000000', 'Чёрный'),
+        ('#0000FF', 'Синий'),
+        ('#008000', 'Зеленый'),
+        ('#FF0000', 'Красный'),
+        ('#FFFF00', 'Жёлтый'),
         ('#FFC0CB', 'Розовый'), 
-        ('#FFA500', 'Оранжевый'), 
-    ) 
- 
-    color = ColorField( 
-        unique=True, 
-        samples=COLOR_PALETTE, 
-        max_length=7, 
-        verbose_name='Цвет тэга', 
+        ('#FFA500', 'Оранжевый'),
+    )
+
+    color = ColorField(
+        unique=True,
+        samples=COLOR_PALETTE,
+        max_length=7,
+        verbose_name='Цвет тэга',
     )
     name = models.CharField(
         'Имя',
@@ -165,7 +165,7 @@ class ShoppingCart(models.Model):
         verbose_name_plural = 'Корзины покупок'
         constraints = [
             UniqueConstraint(fields=['user', 'recipe'],
-                                    name='unique_carts')
+            name='unique_carts')
         ]
 
     def __str__(self):
@@ -193,6 +193,6 @@ class Favorite(models.Model):
             models.UniqueConstraint(fields=['user', 'recipe'],
                                     name='unique_user_recipe')
         ]
-    
+
     def __str__(self):
         return f'{self.user} добавил "{self.recipe}" в Избранное'

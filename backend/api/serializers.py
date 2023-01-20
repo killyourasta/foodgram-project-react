@@ -9,15 +9,13 @@ from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework.serializers import ModelSerializer
 
 from recipes.models import (
     Favorite, Ingredient, IngredientAmount, Recipe, ShoppingCart, Tag,
 )
 
 from users.models import Follow, User
-
-User = get_user_model()
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -106,7 +104,7 @@ class FollowSerializer(CustomUserSerializer):
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ( 'id', 'name', 'color', 'slug',)
+        fields = ('id', 'name', 'color', 'slug',)
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -201,7 +199,7 @@ class RecipeReadSerializer(ModelSerializer):
             'cooking_time',
         )
 
-    def get_ingredients(self, obj):
+    def get_ingredients(obj):
         recipe = obj
         ingredients = recipe.ingredients.values(
             'id',
