@@ -12,11 +12,16 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
+from rest_framework.validators import UniqueValidator
 
 from users.models import Follow, User
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=User.objects.all())])
+    username = serializers.CharField(
+        validators=[UniqueValidator(queryset=User.objects.all())])
     class Meta:
         model = User
         fields = (
@@ -132,26 +137,32 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
+    recipe = serializers.PrimaryKeyRelatedField(
+        queryset=Recipe.objects.all()
+    )
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all()
+    )
+
     class Meta:
         model = Favorite
         fields = ('user', 'recipe')
 
     def validate(self, data):
-        request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        recipe = data['recipe']
-        if Favorite.objects.filter(user=request.user, recipe=recipe).exists():
+        if Favorite.objects.filter(
+                user=self.context.get('request').user,
+                recipe=data['id']
+        ).exists():
             raise serializers.ValidationError({
-                'status': 'Рецепт уже есть в избранном!'
+                'errors': 'Рецепт уже есть в избранном!'
             })
         return data
 
     def to_representation(self, instance):
-        request = self.context.get('request')
-        context = {'request': request}
-        return ShortRecipeSerializer(
-            instance.recipe, context=context).data
+        return SimpleRecipeSerializer(
+            instance,
+            context={'request': self.context.get('request')}
+        ).data
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -178,7 +189,7 @@ class RecipeReadSerializer(ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
     ingredients = SerializerMethodField()
-    image = Base64ImageField()
+    image = Base64ImageField(max_length=None, use_url=False,)
     is_favorited = SerializerMethodField(read_only=True)
     is_in_shopping_cart = SerializerMethodField(read_only=True)
 
@@ -224,7 +235,7 @@ class RecipeWriteSerializer(ModelSerializer):
                                   many=True)
     author = UserSerializer(read_only=True)
     ingredients = IngredientInRecipeWriteSerializer(many=True)
-    image = Base64ImageField()
+    image = Base64ImageField(max_length=None, use_url=False,)
 
     class Meta:
         model = Recipe
@@ -312,3 +323,24 @@ class RecipeWriteSerializer(ModelSerializer):
         context = {'request': request}
         return RecipeReadSerializer(instance,
                                     context=context).data
+
+
+class SimpleRecipeSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для Рецептов для эндпоинта subscriptions
+    Достаем только поля id, name, cooking_time, image
+    """
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'cooking_time', 'image')
+
+    def validate(self, data):
+        if ShoppingCart.objects.filter(
+                user=self.context.get('request').user,
+                recipe=data['id']
+        ).exists():
+            raise serializers.ValidationError({
+                'errors': 'Рецепт уже добавлен в список покупок.'
+            })
+        return data

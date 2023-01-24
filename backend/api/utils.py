@@ -1,39 +1,36 @@
-from datetime import datetime
+import io
 
-from django.db.models import Sum
-from django.http import HttpResponse
-from recipes.models import IngredientAmount
-from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST
+from django.conf import settings
+from django.http import FileResponse
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
 
 
-def get_shopping_list(request):
-    user = request.user
-    if not user.shopping_cart.exists():
-        return Response(status=HTTP_400_BAD_REQUEST)
-
-    ingredients = IngredientAmount.objects.filter(
-        recipe__shopping_cart__user=request.user
-    ).values(
-        'ingredient__name',
-        'ingredient__measurement_unit'
-    ).annotate(amount=Sum('amount'))
-
-    today = datetime.today()
-    shopping_list = (
-        f'Список покупок для: {user.get_full_name()}\n\n'
-        f'Дата: {today:%Y-%m-%d}\n\n'
+def create_pdf(data):
+    shoping_list = []
+    shoping_list.append('СПИСОК ПОКУПОК:')
+    shoping_list.append('---------')
+    for item in data:
+        shoping_list.append(
+            f"{item['ingredient__name']} – "
+            f"{item['sum_amount']}"
+            f"({item['ingredient__measurement_unit']})"
+        )
+    pdfmetrics.registerFont(TTFont('Ubuntu', './api/fonts/Ubuntu-C.ttf'))
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer)
+    font_size = 15
+    p.setFont('Ubuntu', font_size)
+    start_x = 50 # начало строки по оси Х 
+    start_y = 800 # начало строки по оси Y
+    for string_line in shoping_list:
+        p.drawString(start_x, start_y, string_line)
+        start_y -= 15 # для переходуа на другую строку смещаем курсор по оси Y на 15
+    p.showPage()
+    p.save()
+    buffer.seek(0) # значение 0 для перемещения курсора в начало
+    return FileResponse(
+        buffer, as_attachment=True,
+        filename=settings.SHOPPING_LIST_FILE_NAME
     )
-    shopping_list += '\n'.join([
-        f'- {ingredient["ingredient__name"]} '
-        f'({ingredient["ingredient__measurement_unit"]})'
-        f' - {ingredient["amount"]}'
-        for ingredient in ingredients
-    ])
-    shopping_list += f'\n\nFoodgram ({today:%Y})'
-
-    filename = f'{user.username}_shopping_list.pdf'
-    response = HttpResponse(shopping_list, content_type='text/plain')
-    response['Content-Disposition'] = f'attachment; filename={filename}'
-
-    return response

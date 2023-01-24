@@ -83,7 +83,7 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME', 'postgres'),
         'USER': os.getenv('POSTGRES_USER', 'postgres'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgresql'),
-        'HOST': os.getenv('DB_HOST', 'PostgreSQL'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
     },
 }
@@ -122,6 +122,8 @@ REST_FRAMEWORK = {
 
 DJOSER = {
     'LOGIN_FIELD': 'email',
+    'HIDE_USERS': False,
+    'USER_ID_FIELD':'id',
 
     'SERIALIZERS': {
         'user_create': 'api.serializers.CustomUserCreateSerializer',
@@ -130,10 +132,10 @@ DJOSER = {
     },
 
     'PERMISSIONS': {
-        'user': ['rest_framework.permissions.AllowAny'],
+        'user': ['rest_framework.permissions.IsAuthenticated'],
         'user_list': ['rest_framework.permissions.AllowAny'],
+        'user_create': ['rest_framework.permissions.AllowAny'],
     },
-    'HIDE_USERS': False,
 }
 
 LANGUAGE_CODE = 'en-us'
@@ -157,3 +159,5 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SHOPPING_LIST_FILE_NAME = 'shopping_list.pdf'

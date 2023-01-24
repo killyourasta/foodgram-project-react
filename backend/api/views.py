@@ -1,3 +1,4 @@
+from django.db.models import Sum
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,11 +13,11 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from .utils import get_shopping_list
+from .utils import create_pdf
 from api.serializers import (
     CustomUserSerializer, FavoriteSerializer, FollowSerializer,
     IngredientSerializer, RecipeReadSerializer, RecipeWriteSerializer,
-    ShoppingCartSerializer, ShortRecipeSerializer, TagSerializer,
+    ShoppingCartSerializer, ShortRecipeSerializer, TagSerializer, SimpleRecipeSerializer
 )
 from users.models import Follow, User
 
@@ -99,6 +100,25 @@ class RecipeViewSet(ModelViewSet):
         if self.request.method in SAFE_METHODS:
             return RecipeReadSerializer
         return RecipeWriteSerializer
+     
+    @staticmethod
+    def _add_recipe_to(request, pk, model, my_serializer):
+        recipe_id = pk
+        if request.method == 'POST':
+            recipe = get_object_or_404(Recipe, id=recipe_id)
+            serializer = my_serializer(
+                recipe, context={'request': request}
+            )
+            serializer.validate(serializer.data)
+            model.objects.create(user=request.user, recipe=recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        user_id = request.user.id
+        recipe = get_object_or_404(
+            model, user__id=user_id,
+            recipe__id=recipe_id
+        )
+        recipe.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,
@@ -106,10 +126,7 @@ class RecipeViewSet(ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def favorite(self, request, pk):
-        if request.method == 'POST':
-            return self.add_to(Favorite, request.user, pk)
-        serializer = FavoriteSerializer()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self._add_recipe_to(request, pk, Favorite, FavoriteSerializer)
 
     @action(
         detail=True,
@@ -117,33 +134,51 @@ class RecipeViewSet(ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def shopping_cart(self, request, pk):
-        if request.method == 'POST':
-            return self.add_to(ShoppingCart, request.user, pk)
-        serializer = ShoppingCartSerializer()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self._add_recipe_to(
+            request, pk, ShoppingCart, SimpleRecipeSerializer
+        )
+    #     if request.method == 'POST':
+    #         return self.add_to(ShoppingCart, request.user, pk)
+    #     serializer = ShoppingCartSerializer()
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def add_to(self, model, user, pk):
-        if model.objects.filter(user=user, recipe__id=pk).exists():
-            return Response({'errors': 'Рецепт уже добавлен!'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        recipe = get_object_or_404(Recipe, id=pk)
-        model.objects.create(user=user, recipe=recipe)
-        serializer = ShortRecipeSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # def add_to(self, model, user, pk):
+    #     if model.objects.filter(user=user, recipe__id=pk).exists():
+    #         return Response({'errors': 'Рецепт уже добавлен!'},
+    #                         status=status.HTTP_400_BAD_REQUEST)
+    #     recipe = get_object_or_404(Recipe, id=pk)
+    #     model.objects.create(user=user, recipe=recipe)
+    #     serializer = ShortRecipeSerializer(recipe)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def delete_from(self, model, user, pk):
-        obj = model.objects.filter(user=user, recipe__id=pk)
-        if obj.exists():
-            obj.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response({'errors': 'Рецепт уже удален!'},
-                        status=status.HTTP_400_BAD_REQUEST)
+    # def delete_from(self, model, user, pk):
+    #     obj = model.objects.filter(user=user, recipe__id=pk)
+    #     if obj.exists():
+    #         obj.delete()
+    #         return Response(status=status.HTTP_204_NO_CONTENT)
+    #     return Response({'errors': 'Рецепт уже удален!'},
+    #                     status=status.HTTP_400_BAD_REQUEST)
 
     @action(
         detail=False,
-        methods=['GET', 'POST'],
+        methods=['GET'],
         url_path='download_shopping_cart',
         permission_classes=[IsAuthenticated]
     )
+    # def download_shopping_cart(self, request):
+    #     try:
+    #         return get_shopping_list(request)
+    #     except:
+    #         return Response(status=status.HTTP_400_BAD_REQUEST)
     def download_shopping_cart(self, request):
-        return get_shopping_list(request)
+        user = request.user
+        ingredients = IngredientFilter.objects.filter(
+            recipe__shopping_cart__user=user
+        ).values(
+            'ingredient__name', 'ingredient__measurement_unit'
+        ).order_by(
+        'ingredient__name'
+        ).annotate(
+            sum_amount=Sum('amount')
+        )
+        return create_pdf(ingredients)
