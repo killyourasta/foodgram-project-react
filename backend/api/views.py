@@ -19,7 +19,7 @@ from .utils import create_pdf
 from api.serializers import (
     CustomUserSerializer, FavoriteSerializer, FollowSerializer,
     IngredientSerializer, RecipeReadSerializer, RecipeWriteSerializer,
-    SimpleRecipeSerializer, TagSerializer,
+    PlainRecipeSerializer, TagSerializer,
 )
 from users.models import Follow, User
 
@@ -134,7 +134,7 @@ class RecipeViewSet(ModelViewSet):
     )
     def shopping_cart(self, request, pk):
         return self._add_recipe_to(
-            request, pk, ShoppingCart, SimpleRecipeSerializer
+            request, pk, ShoppingCart, PlainRecipeSerializer
         )
 
     @action(

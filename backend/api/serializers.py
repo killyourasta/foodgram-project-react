@@ -67,7 +67,6 @@ class FollowSerializer(serializers.ModelSerializer):
                   'last_name', 'is_subscribed', 'recipes', 'recipes_count')
 
     def get_is_subscribed(self, obj):
-        """Метод проверяет подписан ли пользователь на автора"""
         request = self.context.get('request')
         return (
             request.user.is_authenticated and Follow.objects.filter(
@@ -77,20 +76,18 @@ class FollowSerializer(serializers.ModelSerializer):
         )
 
     def get_recipes_count(self, obj):
-        """метод подсчитыает кол-во рецептов у данного автора"""
         return Recipe.objects.filter(author__id=obj.id).count()
 
     def get_recipes(self, obj):
-        """метод достает рецепты с учетом query параметра recipes_limit"""
         request = self.context.get('request')
         recipes_limit = request.GET.get('recipes_limit')
         queryset = Recipe.objects.filter(
                 author__id=obj.id).order_by('id')
         if recipes_limit:
-            return SimpleRecipeSerializer(
+            return PlainRecipeSerializer(
                 queryset[:int(recipes_limit)], many=True
             ).data
-        return SimpleRecipeSerializer(queryset, many=True).data
+        return PlainRecipeSerializer(queryset, many=True).data
 
     def validate(self, data):
         if Follow.objects.filter(
@@ -155,7 +152,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        return SimpleRecipeSerializer(
+        return PlainRecipeSerializer(
             instance,
             context={'request': self.context.get('request')}
         ).data
@@ -303,7 +300,7 @@ class RecipeWriteSerializer(ModelSerializer):
                                     context=context).data
 
 
-class SimpleRecipeSerializer(serializers.ModelSerializer):
+class PlainRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
