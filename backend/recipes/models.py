@@ -165,7 +165,7 @@ class ShoppingCart(models.Model):
         verbose_name_plural = 'Корзины покупок'
         constraints = [
             UniqueConstraint(fields=['user', 'recipe'],
-                             name='unique_carts')
+                             name='unique_cart')
         ]
 
     def __str__(self):
