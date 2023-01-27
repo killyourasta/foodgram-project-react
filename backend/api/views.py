@@ -99,7 +99,7 @@ class RecipeViewSet(ModelViewSet):
         if self.request.method in SAFE_METHODS:
             return RecipeReadSerializer
         return RecipeWriteSerializer
-     
+  
     @staticmethod
     def _add_recipe_to(request, pk, model, my_serializer):
         recipe_id = pk
