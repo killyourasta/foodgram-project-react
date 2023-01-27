@@ -1,6 +1,5 @@
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
-from django.db.models import F
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
@@ -12,7 +11,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
-from rest_framework.validators import UniqueValidator
 
 from users.models import Follow, User
 
@@ -82,7 +80,7 @@ class FollowSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         recipes_limit = request.GET.get('recipes_limit')
         queryset = Recipe.objects.filter(
-                author__id=obj.id).order_by('id')
+            author__id=obj.id).order_by('id')
         if recipes_limit:
             return PlainRecipeSerializer(
                 queryset[:int(recipes_limit)], many=True
@@ -103,6 +101,7 @@ class FollowSerializer(serializers.ModelSerializer):
                 'errors': 'Нельзя подписываться на самого себя'
             })
         return data
+
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
@@ -191,6 +190,7 @@ class RecipeReadSerializer(ModelSerializer):
             'text',
             'cooking_time'
         )
+
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:

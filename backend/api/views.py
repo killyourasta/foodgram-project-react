@@ -18,8 +18,8 @@ from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .utils import create_pdf
 from api.serializers import (
     CustomUserSerializer, FavoriteSerializer, FollowSerializer,
-    IngredientSerializer, RecipeReadSerializer, RecipeWriteSerializer,
-    PlainRecipeSerializer, TagSerializer,
+    IngredientSerializer, PlainRecipeSerializer, RecipeReadSerializer,
+    RecipeWriteSerializer, TagSerializer,
 )
 from users.models import Follow, User
 
@@ -150,7 +150,7 @@ class RecipeViewSet(ModelViewSet):
         ).values(
             'ingredient__name', 'ingredient__measurement_unit'
         ).order_by(
-        'ingredient__name'
+            'ingredient__name'
         ).annotate(
             sum_amount=Sum('amount')
         )
