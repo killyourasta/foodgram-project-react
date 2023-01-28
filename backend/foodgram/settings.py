@@ -18,8 +18,13 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='secret_key')
 DEBUG = True
 
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS')
-
+# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS')
+ALLOWED_HOSTS=[
+    '51.250.84.45',
+    'localhost',
+    '127.0.0.1',
+    'foodgramproject.ddns.net',
+]
 
 # Application definition
 
