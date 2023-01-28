@@ -94,7 +94,7 @@ jobs:
             sudo docker pull lisyonok/foodgram-backend
             
             sudo docker-compose stop
-            sudo docker image rm foodgram-backend
+            sudo docker-compose rm backend
       
             rm .env
             touch .env 
