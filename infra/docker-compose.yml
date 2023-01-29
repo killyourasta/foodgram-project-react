@@ -25,6 +25,8 @@ services:
     image: lisyonok/foodgram-frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
+    depends_on:
+      - backend
 
   nginx:
     image: nginx:1.21.3-alpine
@@ -38,6 +40,7 @@ services:
       - media_value:/var/html/media/
     depends_on:
       - backend
+      - frontend
     restart: always
 
 volumes:
