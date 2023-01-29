@@ -4,9 +4,9 @@
 
 Foodgram - продуктовый помощник с базой кулинарных рецептов. Позволяет публиковать рецепты, сохранять избранные, а также формировать список покупок для выбранных рецептов. Можно подписываться на любимых авторов.
 
-Проект доступен по [адресу](https://foodgramproject.ddns.net/recipes)
+Проект доступен по [адресу](http://foodgramproject.ddns.net/)
 
-Документация к API доступна [здесь](https://foodgramproject.ddns.net/api/docs/)
+Документация к API доступна [здесь](http://foodgramproject.ddns.net/api/docs/)
 
 Админ: login@yandex.ru, логин: armi, пароль: risatip12
 
